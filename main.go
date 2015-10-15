@@ -126,8 +126,8 @@ func RetrieveNames(list *iam.ListServerCertificatesOutput) (names []string) {
 	return names
 }
 
-func Timezone(zone string) (location *time.Location) {
-	location = time.FixedZone(zone, 9*60*60)
+func Timezone(offset int) (location *time.Location) {
+	location = time.FixedZone("", offset*60*60)
 	return location
 }
 
@@ -135,10 +135,10 @@ func FormatedTime(t time.Time, zone *time.Location) (fTime string) {
 	return t.In(zone).Format("2006-01-02 15:04:05 -0700")
 }
 
-func OutputList(list *iam.ListServerCertificatesOutput) {
+func OutputList(list *iam.ListServerCertificatesOutput, offset int) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Arn", "Path", "ServerCertificateId", "ServerCertificateName", "UploadDate", "Expiration"})
-	zone := Timezone(*timezone)
+	zone := Timezone(offset)
 	for _, metadata := range list.ServerCertificateMetadataList {
 		uploadDate := FormatedTime(*metadata.UploadDate, zone)
 		expiration := FormatedTime(*metadata.Expiration, zone)
@@ -165,12 +165,13 @@ var (
 	token                 = iamSrvCert.Flag("token", "Session token").String()
 	credentialsPath       = iamSrvCert.Flag("credentials", "Credential file").String()
 	profile               = iamSrvCert.Flag("profile", "Use a specific profile from your credential file").Default("default").String()
-	timezone              = iamSrvCert.Flag("timezone", "Timezone").Default("UTC").String()
 
-	iamSrvCertList   = iamSrvCert.Command("list", "List SSL certificates")
-	marker           = iamSrvCertList.Flag("marker", "Paginating results and only after you receive a response indicating that the results are truncated").String()
-	maxItems         = iamSrvCertList.Flag("max-items", "The total number of items to return").Int()
-	pathPrefix       = iamSrvCertList.Flag("path-prefix", "The path prefix for filtering the results").Default("/").String()
+	iamSrvCertList = iamSrvCert.Command("list", "List SSL certificates")
+	marker         = iamSrvCertList.Flag("marker", "Paginating results and only after you receive a response indicating that the results are truncated").String()
+	maxItems       = iamSrvCertList.Flag("max-items", "The total number of items to return").Int()
+	pathPrefix     = iamSrvCertList.Flag("path-prefix", "The path prefix for filtering the results").Default("/").String()
+	timeOffset     = iamSrvCertList.Flag("time-offset", "Time offsets").Default("0").Int()
+
 	iamSrvCertDelete = iamSrvCert.Command("delete", "Delete SSL certificate")
 
 	iamSrvCertUpload = iamSrvCert.Command("upload", "Upload SSL certificate")
@@ -230,7 +231,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		OutputList(lscOut)
+		OutputList(lscOut, *timeOffset)
 	case "delete":
 		var lscOut *iam.ListServerCertificatesOutput
 		lscOut, err = iamSvc.ListServerCertificates(ListServerCertificatesInput(*marker, *maxItems, *pathPrefix))
