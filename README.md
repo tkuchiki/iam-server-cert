@@ -32,7 +32,6 @@ Flags:
   --access-secret=ACCESS-SECRET  AWS secret key
   --credentials=CREDENTIALS      Credential file
   --profile="default"            Use a specific profile from your credential file
-  --timezone="UTC"               Timezone
   --version                      Show application version.
 
 Commands:
