@@ -3,7 +3,7 @@
 
 # Installation
 
-Download from https://github.com/tkuchiki/alp/releases
+Download from https://github.com/tkuchiki/iam-server-cert/releases
 
 # Usage
 
